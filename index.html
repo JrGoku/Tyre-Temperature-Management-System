@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Truck & Bus Radial Tire Telemetry Simulator</title>
+  <meta name="description" content="Offline truck tire telemetry simulator with live temperature, pressure, sustainability scores, architecture diagram, and canvas chart." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar glass-panel">
+      <div class="topbar__brand">
+        <div class="eyebrow">Michelin Chennai Internship Project</div>
+        <h1>Truck & Bus Radial Tire Telemetry Simulator</h1>
+        <p class="subtitle">
+          Industrial engineering demo of an ESP32-based wheel sensor network with live tire temperature,
+          pressure, sustainability scores, and wireless telemetry visualization.
+        </p>
+      </div>
+
+      <div class="topbar__status">
+        <div class="status-chip status-chip--blue">
+          <span class="status-dot status-dot--blue"></span>
+          <span id="systemStatusText">System Online</span>
+        </div>
+        <div class="status-chip">
+          <span class="muted">Live Clock</span>
+          <strong id="liveClock">--:--:--</strong>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-grid">
+      <section class="panel panel--truck glass-panel">
+        <div class="panel__header">
+          <h2>Truck Chassis View</h2>
+          <span class="panel__tag">Clickable wheel selector</span>
+        </div>
+        <div class="panel__body">
+          <div class="truck-wrap">
+            <svg id="truckSvg" class="truck-svg" viewBox="0 0 920 640" role="img" aria-label="Truck chassis with four wheels">
+              <defs>
+                <linearGradient id="bodyGrad" x1="0%" x2="0%" y1="0%" y2="100%">
+                  <stop offset="0%" stop-color="#182433" />
+                  <stop offset="100%" stop-color="#0d1621" />
+                </linearGradient>
+                <linearGradient id="cabGrad" x1="0%" x2="0%" y1="0%" y2="100%">
+                  <stop offset="0%" stop-color="#1b2a3a" />
+                  <stop offset="100%" stop-color="#0c141f" />
+                </linearGradient>
+                <filter id="glow">
+                  <feGaussianBlur stdDeviation="6" result="blur"/>
+                  <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <rect x="0" y="0" width="920" height="640" rx="28" fill="transparent" />
+
+              <g class="truck-illustration">
+                <rect x="70" y="96" width="160" height="210" rx="22" fill="url(#cabGrad)" stroke="#324759" stroke-width="3"/>
+                <rect x="95" y="124" width="85" height="55" rx="12" fill="#111b27" stroke="#355068" stroke-width="2"/>
+                <rect x="185" y="142" width="24" height="22" rx="5" fill="#223548"/>
+                <rect x="204" y="150" width="10" height="10" rx="3" fill="#4fc3f7"/>
+
+                <rect x="205" y="154" width="565" height="170" rx="24" fill="url(#bodyGrad)" stroke="#324759" stroke-width="3"/>
+                <rect x="230" y="190" width="515" height="20" rx="10" fill="#243645" opacity="0.75"/>
+                <path d="M730 160 L820 160 L862 210 L862 324 L730 324 Z" fill="url(#cabGrad)" stroke="#324759" stroke-width="3"/>
+                <rect x="758" y="190" width="62" height="42" rx="9" fill="#111b27" stroke="#355068" stroke-width="2"/>
+                <circle cx="800" cy="254" r="8" fill="#4fc3f7" opacity="0.9" />
+
+                <line x1="70" y1="340" x2="875" y2="340" stroke="#324759" stroke-width="4" />
+                <line x1="70" y1="352" x2="875" y2="352" stroke="#1f2d3b" stroke-width="2" stroke-dasharray="8 10" />
+
+                <g class="wheel-group" data-wheel="FL" tabindex="0" role="button" aria-label="Select Front Left wheel">
+                  <circle class="wheel-glow" cx="205" cy="455" r="56" />
+                  <circle class="wheel-body" cx="205" cy="455" r="44" />
+                  <circle class="wheel-rim" cx="205" cy="455" r="20" />
+                  <circle class="sensor-pulse" cx="205" cy="455" r="10" />
+                  <text x="205" y="523" text-anchor="middle" class="wheel-label">FL</text>
+                  <text x="205" y="544" text-anchor="middle" class="wheel-sub">Front Left</text>
+                </g>
+
+                <g class="wheel-group" data-wheel="FR" tabindex="0" role="button" aria-label="Select Front Right wheel">
+                  <circle class="wheel-glow" cx="485" cy="455" r="56" />
+                  <circle class="wheel-body" cx="485" cy="455" r="44" />
+                  <circle class="wheel-rim" cx="485" cy="455" r="20" />
+                  <circle class="sensor-pulse" cx="485" cy="455" r="10" />
+                  <text x="485" y="523" text-anchor="middle" class="wheel-label">FR</text>
+                  <text x="485" y="544" text-anchor="middle" class="wheel-sub">Front Right</text>
+                </g>
+
+                <g class="wheel-group" data-wheel="RL" tabindex="0" role="button" aria-label="Select Rear Left wheel">
+                  <circle class="wheel-glow" cx="205" cy="325" r="56" />
+                  <circle class="wheel-body" cx="205" cy="325" r="44" />
+                  <circle class="wheel-rim" cx="205" cy="325" r="20" />
+                  <circle class="sensor-pulse" cx="205" cy="325" r="10" />
+                  <text x="205" y="393" text-anchor="middle" class="wheel-label">RL</text>
+                  <text x="205" y="414" text-anchor="middle" class="wheel-sub">Rear Left</text>
+                </g>
+
+                <g class="wheel-group" data-wheel="RR" tabindex="0" role="button" aria-label="Select Rear Right wheel">
+                  <circle class="wheel-glow" cx="485" cy="325" r="56" />
+                  <circle class="wheel-body" cx="485" cy="325" r="44" />
+                  <circle class="wheel-rim" cx="485" cy="325" r="20" />
+                  <circle class="sensor-pulse" cx="485" cy="325" r="10" />
+                  <text x="485" y="393" text-anchor="middle" class="wheel-label">RR</text>
+                  <text x="485" y="414" text-anchor="middle" class="wheel-sub">Rear Right</text>
+                </g>
+
+                <g class="wireless-link link-fl">
+                  <path d="M248 310 C290 280, 310 250, 360 230" />
+                </g>
+                <g class="wireless-link link-fr">
+                  <path d="M528 310 C575 270, 610 246, 665 226" />
+                </g>
+                <g class="wireless-link link-rl">
+                  <path d="M248 310 C300 310, 340 325, 390 345" />
+                </g>
+                <g class="wireless-link link-rr">
+                  <path d="M528 310 C580 330, 620 347, 680 360" />
+                </g>
+
+                <circle class="receiver-node" cx="798" cy="245" r="18" />
+                <path class="central-arrow" d="M526 235 C610 210, 675 200, 760 228" />
+              </g>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel--center glass-panel">
+        <div class="panel__header">
+          <h2>Live Wheel Dashboard</h2>
+          <span class="panel__tag">Selected wheel telemetry</span>
+        </div>
+
+        <div class="panel__body">
+          <div class="selection-strip">
+            <div class="selection-strip__item">
+              <span class="muted">Selected Wheel</span>
+              <strong id="selectedWheelName">FL</strong>
+            </div>
+            <div class="selection-strip__item">
+              <span class="muted">Telemetry State</span>
+              <strong id="selectedWheelStatus">Optimal</strong>
+            </div>
+          </div>
+
+          <div class="hero-metrics">
+            <article class="metric-card metric-card--temperature">
+              <div class="metric-card__icon metric-icon metric-icon--temp">
+                <img src="assets/temperature.svg" alt="" />
+              </div>
+              <div class="metric-card__content">
+                <span class="metric-label">Temperature</span>
+                <div class="metric-value-row">
+                  <h3 id="temperatureValue">68.0</h3>
+                  <span class="metric-unit">°C</span>
+                </div>
+                <div class="progress-line">
+                  <div class="progress-line__fill" id="temperatureBar"></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="metric-card metric-card--pressure">
+              <div class="metric-card__icon metric-icon metric-icon--pressure">
+                <img src="assets/pressure.svg" alt="" />
+              </div>
+              <div class="metric-card__content">
+                <span class="metric-label">Pressure</span>
+                <div class="metric-value-row">
+                  <h3 id="pressureValue">98.0</h3>
+                  <span class="metric-unit">PSI</span>
+                </div>
+                <div class="progress-line">
+                  <div class="progress-line__fill progress-line__fill--blue" id="pressureBar"></div>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <div class="score-grid">
+            <article class="score-card">
+              <div class="score-card__head">
+                <span>Efficiency Score</span>
+                <strong id="efficiencyValue">100</strong>
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__fill progress-line__fill--green" id="efficiencyBar"></div>
+              </div>
+              <p class="score-caption">Drops while temperature remains above the optimal threshold.</p>
+            </article>
+
+            <article class="score-card">
+              <div class="score-card__head">
+                <span>Wear-Life Score</span>
+                <strong id="wearValue">100</strong>
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__fill progress-line__fill--green" id="wearBar"></div>
+              </div>
+              <p class="score-caption">Decreases with cumulative minutes above threshold.</p>
+            </article>
+
+            <article class="score-card">
+              <div class="score-card__head">
+                <span>Retread Risk Score</span>
+                <strong id="riskValue">0</strong>
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__fill progress-line__fill--yellow" id="riskBar"></div>
+              </div>
+              <p class="score-caption">Rises after sustained heat exposure accumulates.</p>
+            </article>
+
+            <article class="score-card">
+              <div class="score-card__head">
+                <span>Fleet Health</span>
+                <strong id="fleetHealthValue">100</strong>
+              </div>
+              <div class="progress-line">
+                <div class="progress-line__fill progress-line__fill--blue" id="fleetHealthBar"></div>
+              </div>
+              <p class="score-caption">Derived from the average condition of all four wheels.</p>
+            </article>
+          </div>
+
+          <div class="control-panel">
+            <div class="control-panel__head">
+              <h3>Temperature Control</h3>
+              <span class="muted">Demo mode</span>
+            </div>
+
+            <label class="slider-label" for="heatSlider">Artificial heat ramp</label>
+            <input id="heatSlider" type="range" min="0" max="100" value="18" />
+
+            <div class="button-row">
+              <button class="action-btn action-btn--heat" id="heatBtn" type="button">
+                <span class="btn-icon">▲</span>
+                Heat Up 5%
+              </button>
+              <button class="action-btn action-btn--cool" id="coolBtn" type="button">
+                <span class="btn-icon">▼</span>
+                Cool Down 5%
+              </button>
+              <button class="action-btn action-btn--reset" id="resetBtn" type="button">
+                <span class="btn-icon">↺</span>
+                Reset
+              </button>
+            </div>
+
+            <p class="control-note">
+              Use the slider and heat controls to demonstrate before/after tire heating behavior during your presentation.
+            </p>
+          </div>
+
+          <div class="telemetry-note">
+            <strong>Live message:</strong>
+            <span id="liveMessage">System initialized.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel--right glass-panel">
+        <div class="panel__header">
+          <h2>Hardware Architecture</h2>
+          <span class="panel__tag">System topology</span>
+        </div>
+
+        <div class="panel__body">
+          <svg class="arch-svg" viewBox="0 0 520 770" role="img" aria-label="Telemetry hardware architecture diagram">
+            <defs>
+              <linearGradient id="archBg" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#182434" />
+                <stop offset="100%" stop-color="#0d1621" />
+              </linearGradient>
+              <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#4FC3F7" />
+              </marker>
+              <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#34C759" />
+              </marker>
+            </defs>
+
+            <rect x="22" y="22" width="476" height="726" rx="26" fill="url(#archBg)" stroke="#314557" />
+
+            <text x="44" y="64" class="arch-title">Wheel Node</text>
+            <text x="44" y="84" class="arch-subtitle">IR sensor, pressure sensor, ESP32, battery</text>
+
+            <g transform="translate(50,120)">
+              <circle cx="110" cy="120" r="88" class="arch-wheel-ring"/>
+              <circle cx="110" cy="120" r="56" class="arch-wheel-core"/>
+              <circle cx="110" cy="120" r="22" class="arch-wheel-hub"/>
+
+              <g class="arch-sensor arch-sensor--ir">
+                <rect x="8" y="4" width="80" height="34" rx="12" />
+                <text x="48" y="26" text-anchor="middle">IR Sensor</text>
+                <path d="M88 21 L128 70" marker-end="url(#arrowBlue)" class="arch-connector" />
+              </g>
+
+              <g class="arch-sensor arch-sensor--pressure">
+                <rect x="186" y="54" width="110" height="34" rx="12" />
+                <text x="241" y="76" text-anchor="middle">Pressure Sensor</text>
+                <path d="M186 71 L152 100" marker-end="url(#arrowBlue)" class="arch-connector" />
+              </g>
+
+              <g class="arch-sensor arch-sensor--esp">
+                <rect x="48" y="248" width="120" height="42" rx="14" />
+                <text x="108" y="275" text-anchor="middle">ESP32</text>
+              </g>
+
+              <g class="arch-sensor arch-sensor--battery">
+                <rect x="184" y="238" width="86" height="52" rx="14" />
+                <text x="227" y="270" text-anchor="middle">Battery</text>
+              </g>
+
+              <path d="M110 202 C110 224, 108 238, 108 248" class="arch-connector arch-connector--solid" marker-end="url(#arrowGreen)" />
+              <path d="M180 264 C210 264, 228 262, 250 262" class="arch-connector arch-connector--solid" marker-end="url(#arrowGreen)" />
+
+              <text x="110" y="338" text-anchor="middle" class="arch-caption">Mounted next to the tire inside the chassis</text>
+            </g>
+
+            <text x="46" y="418" class="arch-title">Wireless Communication</text>
+            <text x="46" y="438" class="arch-subtitle">ESP-NOW telemetry link to cabin receiver</text>
+
+            <path d="M184 510 C280 470, 336 460, 410 434" class="arch-wireless" marker-end="url(#arrowBlue)" />
+            <path d="M186 540 C286 520, 342 510, 412 490" class="arch-wireless arch-wireless--soft" marker-end="url(#arrowBlue)" />
+
+            <rect x="362" y="390" width="124" height="92" rx="18" class="arch-receiver-box" />
+            <text x="424" y="426" text-anchor="middle" class="arch-receiver-title">Cabin Receiver</text>
+            <text x="424" y="446" text-anchor="middle" class="arch-receiver-sub">ESP-NOW</text>
+
+            <rect x="60" y="576" width="388" height="122" rx="22" class="arch-dashboard-box" />
+            <text x="86" y="616" class="arch-title">Dashboard</text>
+            <text x="86" y="640" class="arch-subtitle">Live temperature, pressure, scores, charting, and alerts</text>
+
+            <g transform="translate(88,656)">
+              <rect x="0" y="0" width="92" height="26" rx="10" class="arch-pill" />
+              <text x="46" y="17" text-anchor="middle">Temperature</text>
+
+              <rect x="108" y="0" width="74" height="26" rx="10" class="arch-pill" />
+              <text x="145" y="17" text-anchor="middle">Pressure</text>
+
+              <rect x="198" y="0" width="98" height="26" rx="10" class="arch-pill" />
+              <text x="247" y="17" text-anchor="middle">Efficiency</text>
+
+              <rect x="312" y="0" width="86" height="26" rx="10" class="arch-pill" />
+              <text x="355" y="17" text-anchor="middle">Fleet Health</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel panel--chart glass-panel">
+      <div class="panel__header">
+        <h2>Live Temperature History</h2>
+        <span class="panel__tag">Canvas chart</span>
+      </div>
+      <div class="panel__body">
+        <canvas id="tempChart" width="1600" height="460"></canvas>
+      </div>
+    </section>
+
+    <section class="panel panel--fleet glass-panel">
+      <div class="panel__header">
+        <h2>Fleet Status Panel</h2>
+        <span class="panel__tag">Operational snapshot</span>
+      </div>
+      <div class="panel__body fleet-grid">
+        <div class="fleet-item"><span>Live Clock</span><strong id="fleetClock">--:--:--</strong></div>
+        <div class="fleet-item"><span>Connection Status</span><strong id="connectionStatus">Connected</strong></div>
+        <div class="fleet-item"><span>Sensor Count</span><strong>8</strong></div>
+        <div class="fleet-item"><span>Packet Rate</span><strong id="packetRate">0.67 Hz</strong></div>
+        <div class="fleet-item"><span>System Uptime</span><strong id="systemUptime">00:00:00</strong></div>
+        <div class="fleet-item"><span>Fleet Health</span><strong id="fleetHealthText">100%</strong></div>
+        <div class="fleet-item fleet-item--wide">
+          <span>System Status</span>
+          <strong id="systemStatusDetail">Simulated telemetry active</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

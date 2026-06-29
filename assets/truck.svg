@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 640">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#182433"/>
+      <stop offset="100%" stop-color="#0d1621"/>
+    </linearGradient>
+    <linearGradient id="cabGrad" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#1b2a3a"/>
+      <stop offset="100%" stop-color="#0c141f"/>
+    </linearGradient>
+  </defs>
+  <rect width="920" height="640" rx="28" fill="transparent"/>
+  <rect x="70" y="96" width="160" height="210" rx="22" fill="url(#cabGrad)" stroke="#324759" stroke-width="3"/>
+  <rect x="95" y="124" width="85" height="55" rx="12" fill="#111b27" stroke="#355068" stroke-width="2"/>
+  <rect x="205" y="154" width="565" height="170" rx="24" fill="url(#bodyGrad)" stroke="#324759" stroke-width="3"/>
+  <path d="M730 160 L820 160 L862 210 L862 324 L730 324 Z" fill="url(#cabGrad)" stroke="#324759" stroke-width="3"/>
+</svg>
