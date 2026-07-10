@@ -69,29 +69,6 @@ No installation is required. This is a static website.
 ### Option 2: Use a local server
 If you prefer, you can serve the folder locally with any static server, but it is not required.
 
-## GitHub Pages Deployment
-
-This project is fully compatible with GitHub Pages.
-
-### Steps
-1. Create a GitHub repository.
-2. Upload all files into the repository root.
-3. Make sure `index.html` is directly in the root folder.
-4. Commit and push the files.
-5. In GitHub, go to **Settings → Pages**.
-6. Under **Build and deployment**, set:
-   - **Source:** Deploy from a branch
-   - **Branch:** `main`
-   - **Folder:** `/root`
-7. Click **Save**.
-8. Wait a few minutes for GitHub Pages to deploy the site.
-9. Open the public URL shown in the Pages settings.
-
-### Typical URL format
-```text
-https://your-username.github.io/your-repository-name/
-```
-
 ## Future Improvements
 
 - Add real ESP32 live data input
